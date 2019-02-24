@@ -1,6 +1,8 @@
-let name = null;
 $(function() {
+  let user = null;
   var socket = io();
+
+  // Logic to handle message submission and user commands
   $("form").submit(function(e) {
     e.preventDefault();
     let message = $("#m").val();
@@ -36,24 +38,38 @@ $(function() {
     $("#m").val("");
     return false;
   });
+
+  // Method called when someone sends a message.
   socket.on("chat message", function(msg) {
     let timestamp = generateTimeStamp(msg.time);
-    let message = msg.user + ": " + msg.message + "  (" + timestamp + ")";
-    if (msg.user === name) message = "<b>" + message + "</b>";
+    let message = msg.user.name + ": " + msg.message + "  (" + timestamp + ")";
+    if (msg.user.name == user.name) message = "<b>" + message + "</b>";
     $("#messages").append(
       $("<li>")
         .html(message)
-        .css("color", msg.color)
+        .css("color", msg.user.color)
     );
   });
-  socket.on("name", function(msg) {
-    name = msg;
-    $("#messages").append($("<li>").text("You are: " + name));
+
+  // This function is called when the user is initially setup by the server.
+  socket.on("info", function(data) {
+    user = data;
+    $("#messages").append(
+      $("<li>")
+        .text("You are: " + user.name)
+        .css("color", user.color)
+    );
   });
-  socket.on("user list", function(msg) {
+
+  // Updates the User List
+  socket.on("user list", function(data) {
     $("#user-list").empty();
-    for (i = 0; i < msg.length; i++) {
-      $("#user-list").append($("<li>").text(msg[i]));
+    for (i = 0; i < data.length; i++) {
+      $("#user-list").append(
+        $("<li>")
+          .text(data[i].name)
+          .css("color", data[i].color)
+      );
     }
   });
 });
