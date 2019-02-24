@@ -52,13 +52,18 @@ $(function() {
   });
 
   // This function is called when the user is initially setup by the server.
-  socket.on("info", function(data) {
+  socket.on("info", function(data, chatLog) {
     user = data;
     $("#messages").append(
       $("<li>")
         .text("You are: " + user.name)
         .css("color", user.color)
     );
+    if (chatLog.length > 0) {
+      for (i = 0; i < chatLog.length; i++) {
+        addMessage(chatLog[i]);
+      }
+    }
   });
 
   // Updates the User List
@@ -72,6 +77,17 @@ $(function() {
       );
     }
   });
+
+  function addMessage(msg) {
+    let timestamp = generateTimeStamp(msg.time);
+    let message = msg.user.name + ": " + msg.message + "  (" + timestamp + ")";
+    if (msg.user.name == user.name) message = "<b>" + message + "</b>";
+    $("#messages").append(
+      $("<li>")
+        .html(message)
+        .css("color", msg.user.color)
+    );
+  }
 });
 
 function generateTimeStamp(input) {
