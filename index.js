@@ -6,34 +6,63 @@ app.use(express.static(__dirname + "/client"));
 var io = require("socket.io")(http);
 
 const userNames = ["parrot", "carrot", "harlot"];
+const colorLibrary = ["#F1C40F", "#8E44AD", "#1ABC9C"];
 let users = [];
+let colors = [];
 
 app.get("/", function(req, res) {
   res.sendFile(__dirname + "/client/index.html");
 });
 
 io.on("connection", function(socket) {
+  // When a user connects
   console.log("a user connected");
-  let userName = randomName();
-  users.push(userName);
-  socket.user = userName;
-  socket.emit("name", userName);
+  socket.user = randomName();
+  socket.color = randomColor();
+  users.push(socket.user);
+  socket.emit("name", socket.user);
   io.emit("user list", users);
+
+  // On Disconnect
   socket.on("disconnect", function() {
-    console.log("user disconnected");
-    users = users.filter(name => name !== userName);
+    console.log(socket.user + " disconnected");
+    users = users.filter(name => name !== socket.user);
+    colors = colors.filter(color => color !== socket.color);
     io.emit("user list", users);
   });
+
+  // Relaying Chat Message
   socket.on("chat message", function(msg) {
-    console.log("message: " + msg);
-    var today = new Date();
-    var time =
-      today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
     io.emit("chat message", {
       user: socket.user,
+      color: socket.color,
       message: msg,
-      timestamp: generateTimeStamp()
+      time: new Date()
     });
+  });
+
+  // Changing User Name
+  socket.on("change name", function(name, callback) {
+    if (users.includes(name)) {
+      callback(false, "Name not unique in room");
+    } else {
+      users[users.indexOf(socket.user)] = name;
+      socket.user = name;
+      callback(true, "Name changed to " + name);
+      io.emit("user list", users);
+    }
+  });
+
+  // Changing User Name
+  socket.on("change namecolor", function(color, callback) {
+    if (colors.includes(color)) {
+      callback(false, "Color is not unique in room");
+    } else {
+      colors[colors.indexOf(socket.color)] = color;
+      socket.color = color;
+      callback(true, "Color changed to " + color);
+      io.emit("user list", users);
+    }
   });
 });
 
@@ -46,13 +75,7 @@ function randomName() {
   return availableNames[Math.floor(Math.random() * availableNames.length)];
 }
 
-function generateTimeStamp() {
-  let current = new Date();
-  let hours = current.getHours();
-  let min = current.getMinutes();
-  let meridiem = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  if (hours == 0) hours = 12;
-  if (min < 10) min = "0" + min;
-  return hours + ":" + min + " " + meridiem;
+function randomColor() {
+  let availableColors = colorLibrary.filter(color => !colors.includes(color));
+  return availableColors[Math.floor(Math.random() * availableColors.length)];
 }
