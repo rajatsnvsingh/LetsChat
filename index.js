@@ -17,6 +17,7 @@ app.get("/", function(req, res) {
 
 io.on("connection", function(socket) {
   // When a user connects
+  console.log("a user connected!");
   socket.user = {};
   socket.user.name = randomName();
   socket.user.color = randomColor();

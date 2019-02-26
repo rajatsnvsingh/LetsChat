@@ -1,35 +1,50 @@
 $(function() {
   let user = null;
   var socket = io();
-
+  $(".alert").hide();
   // Logic to handle message submission and user commands
   $("form").submit(function(e) {
     e.preventDefault();
     let message = $("#m").val();
     if (message.startsWith("/nickcolor")) {
       let value = getValueFromCommand(message);
-      let colorOk = /(^#[0-9A-F]{6}$)|(^[0-9A-F]{6}$)/i.test(value);
+      if (/(^[0-9A-F]{6}$)/i.test(value)) {
+        value = "#" + value;
+      }
+      let colorOk = /(^#[0-9A-F]{6}$)/i.test(value);
       if (colorOk) {
         socket.emit("change namecolor", value, function(success, message) {
           if (success) {
-            alert("Your color has changed to: " + value);
+            user.color = value;
+            $(".user-name")
+              .text(user.name)
+              .css("color", user.color);
+            showAlert("Your color has changed to: " + value);
           } else {
             //name = value;
-            alert("Please enter a unique color!");
+            showAlert("Please enter a unique color!");
           }
         });
       } else {
-        alert("Please enter a valid color!!");
+        showAlert("Please enter a valid color!!");
         return;
       }
     } else if (message.startsWith("/nick")) {
       let value = getValueFromCommand(message);
+      if (value.length > 8) {
+        showAlert("Please choose a nick name that is less than 8 characters!");
+        return;
+      }
       socket.emit("change name", value, function(success, message) {
         if (success) {
-          alert("Your name has changed to: " + value);
+          //name = value;
+          user.name = value;
+          $(".user-name")
+            .text(user.name)
+            .css("color", user.color);
+          showAlert("Your name has changed to: " + value);
         } else {
-          name = value;
-          alert("Please enter a unique name!");
+          showAlert("Please enter a unique name!");
         }
       });
     } else {
@@ -41,24 +56,15 @@ $(function() {
 
   // Method called when someone sends a message.
   socket.on("chat message", function(msg) {
-    let timestamp = generateTimeStamp(msg.time);
-    let message = msg.user.name + ": " + msg.message + "  (" + timestamp + ")";
-    if (msg.user.name == user.name) message = "<b>" + message + "</b>";
-    $("#messages").append(
-      $("<li>")
-        .html(message)
-        .css("color", msg.user.color)
-    );
+    addMessage(msg);
   });
 
   // This function is called when the user is initially setup by the server.
   socket.on("info", function(data, chatLog) {
     user = data;
-    $("#messages").append(
-      $("<li>")
-        .text("You are: " + user.name)
-        .css("color", user.color)
-    );
+    $(".user-name")
+      .text(user.name)
+      .css("color", user.color);
     if (chatLog.length > 0) {
       for (i = 0; i < chatLog.length; i++) {
         addMessage(chatLog[i]);
@@ -68,27 +74,54 @@ $(function() {
 
   // Updates the User List
   socket.on("user list", function(data) {
-    $("#user-list").empty();
+    $(".user-list").empty();
     for (i = 0; i < data.length; i++) {
-      $("#user-list").append(
-        $("<li>")
+      $(".user-list").append(
+        $("<div>")
           .text(data[i].name)
+          .addClass("list-user")
           .css("color", data[i].color)
       );
     }
   });
 
   function addMessage(msg) {
-    let timestamp = generateTimeStamp(msg.time);
-    let message = msg.user.name + ": " + msg.message + "  (" + timestamp + ")";
-    if (msg.user.name == user.name) message = "<b>" + message + "</b>";
-    $("#messages").append(
-      $("<li>")
-        .html(message)
-        .css("color", msg.user.color)
+    let messageContent =
+      '<div class="message-content">' + msg.message + "</div>";
+    let messageUser =
+      '<div class="message-user"' +
+      'style="color: ' +
+      msg.user.color +
+      ';"' +
+      ">" +
+      msg.user.name +
+      "</div>";
+    let messageTime =
+      '<div class="message-time">' + generateTimeStamp(msg.time) + "</div>";
+    console.log(msg);
+    $("#chat-log").append(
+      $("<div>")
+        .html(messageTime + messageUser + messageContent)
+        .addClass(function() {
+          let cl = "message";
+          if (msg.user.name == user.name) {
+            cl = cl + " own-message";
+          }
+          return cl;
+        })
     );
+    var d = $("#chat-log");
+    d.scrollTop(d.prop("scrollHeight"));
   }
 });
+
+function showAlert(message) {
+  $(".alert").text(message);
+  $(".alert")
+    .show()
+    .delay(1200)
+    .fadeOut();
+}
 
 function generateTimeStamp(input) {
   let current = new Date(input);
