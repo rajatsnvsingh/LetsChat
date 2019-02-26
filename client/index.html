@@ -2,19 +2,143 @@
 <html>
   <head>
     <title>Let's Chat</title>
-    <link rel="stylesheet" type="text/css" href="/style.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <link rel="stylesheet" type="text/css" href="style.css" />
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script src="/script.js"></script>
+    <!-- <script src="/script.js"></script> -->
   </head>
   <body>
-    <div id="all-users">
-      Users in this room:
+    <!-- <div id="all-users">
+      Users in this sroom:
       <ul id="user-list"></ul>
     </div>
     <ul id="messages"></ul>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+    </form> -->
+    <nav>
+      <span>Let's Chat</span>
+    </nav>
+    <div id="content">
+      <div id="sidebar">
+        <div class="user-info">
+          You are
+          <h1 class="user-name">Raj</h1>
+        </div>
+        <hr class="sidebar-line" />
+        <div class="users-online">
+          <div class="list-title">Users Online</div>
+          <div class="list-user">Raav</div>
+          <div class="list-user">Quinn</div>
+          <div class="list-user">Aidan</div>
+        </div>
+      </div>
+
+      <div id="chat">
+        <div id="chat-log-container">
+          <div id="chat-log">
+            <div class="alert">
+              This is an alert people!
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:04:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Hi Raj, How are you doing? How are you doing? How are you doing?
+                How are you doing? How are you doing? How are you doing? How are
+                you doing?
+              </div>
+            </div>
+            <div class="message own-message">
+              <div class="message-time">7:07:09 PM</div>
+              <div class="message-user">Raj</div>
+              <div class="message-content">
+                I'm Fine, How are you doing? How are you doing? How are you
+                doing? How are you doing? How are you doing? How are you doing?
+                How are you doing?
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:09:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Thank's for asking. I'm awesome just like you.
+              </div>
+            </div>
+            <div class="message">
+              <div class="message-time">7:09:09 PM</div>
+              <div class="message-user">Aidan</div>
+              <div class="message-content">
+                Thank's for asking. I'm awesome just like you.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="chat-form">
+          <form action="">
+            <input id="m" autocomplete="off" placeholder="Message.." />
+            <button>Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
