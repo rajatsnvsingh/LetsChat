@@ -59,9 +59,15 @@ $(function() {
     addMessage(msg);
   });
 
+  socket.on("full room", function() {
+    addMessage("The chat room is full, please try later.");
+  });
+
   // This function is called when the user is initially setup by the server.
-  socket.on("info", function(data, chatLog) {
+  socket.on("info", function(data, chatLog, time) {
     user = data;
+    setCookie("user", user.name, 3);
+    setCookie("timeC", time, 3);
     $(".user-name")
       .text(user.name)
       .css("color", user.color);
@@ -138,4 +144,11 @@ function generateTimeStamp(input) {
 
 function getValueFromCommand(command) {
   return command.substr(command.indexOf(" ") + 1).trim();
+}
+
+function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+  var expires = "expires=" + d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }

@@ -147,7 +147,8 @@ form button {
   min-width: 200px;
   margin: 20px;
   margin-top: 0;
-  width: fit-content;
+  /* width: fit-content; */
+  display: table;
   clear: both;
 }
 .message-user {

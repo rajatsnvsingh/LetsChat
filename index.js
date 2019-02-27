@@ -2,13 +2,23 @@ var express = require("express");
 var app = express();
 var http = require("http").Server(app);
 app.use(express.static(__dirname + "/client"));
+var cookieManager = require("cookie");
+//app.use(cookieParser());
 var io = require("socket.io")(http);
-
 var chatLogLimit = 200;
+var serverStartTime = Date.now();
 
-const userNames = ["parrot", "carrot", "harlot"];
-const colorLibrary = ["#F1C40F", "#8E44AD", "#1ABC9C"];
+const userNames = ["parrot", "carrot", "harlot", "sharlot", "marriot", "riot"];
+const colorLibrary = [
+  "#F1C40F",
+  "#8E44AD",
+  "#1ABC9C",
+  "#2BAFA7",
+  "#C0DA05",
+  "#DA05D4"
+];
 let users = [];
+let activeUsers = [];
 let chatLog = [];
 
 app.get("/", function(req, res) {
@@ -16,20 +26,47 @@ app.get("/", function(req, res) {
 });
 
 io.on("connection", function(socket) {
-  // When a user connects
-  console.log("a user connected!");
-  socket.user = {};
-  socket.user.name = randomName();
-  socket.user.color = randomColor();
-  users.push(socket.user);
-  socket.emit("info", socket.user, chatLog);
-  io.emit("user list", users);
+  var checkReturn = checkReturning(socket.handshake.headers.cookie);
+
+  if (checkReturn) {
+    socket.user = checkReturn;
+    socket.user.tabs = socket.user.tabs + 1;
+    if (activeUsers.filter(e => e.name === socket.user.name).length < 1) {
+      activeUsers.push(socket.user);
+    }
+  } else {
+    console.log("new user");
+    if (users.length === userNames.length) {
+      socket.emit("full room");
+      return;
+    }
+    socket.user = {};
+    socket.user.name = randomName();
+    socket.user.color = randomColor();
+    socket.user.tabs = 1;
+    users.push(socket.user);
+    activeUsers.push(socket.user);
+  }
+
+  socket.emit("info", socket.user, chatLog, Date.now());
+  io.emit("user list", activeUsers);
 
   // On Disconnect
   socket.on("disconnect", function() {
     console.log(socket.user.name + " disconnected");
-    users = users.filter(user => user !== socket.user);
-    io.emit("user list", users);
+    var openTabs = 0;
+    for (var i in users) {
+      if (users[i].name == socket.user.name) {
+        users[i].tabs = users[i].tabs - 1;
+        openTabs = users[i].tabs;
+        break;
+      }
+    }
+    if (openTabs < 1) {
+      activeUsers = activeUsers.filter(user => user !== socket.user);
+    }
+
+    io.emit("user list", activeUsers);
   });
 
   // Relaying Chat Message
@@ -85,4 +122,16 @@ function randomColor() {
     color => !users.some(user => user.color === color)
   );
   return availableColors[Math.floor(Math.random() * availableColors.length)];
+}
+
+function checkReturning(cookie) {
+  if (typeof cookie == "undefined") return false;
+  let c = cookieManager.parse(cookie);
+  if (this.timeC < serverStartTime) return false;
+  if (typeof c.user == "undefined") return false;
+  var result = users.filter(function(x) {
+    return x.name == c.user;
+  });
+  if (result.length < 1) return false;
+  return result[0];
 }
