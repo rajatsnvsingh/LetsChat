@@ -42,8 +42,9 @@ $(function() {
       }
       socket.emit("change name", value, function(success, message) {
         if (success) {
-          //name = value;
           user.name = value;
+          // Must update cookies for identification.
+          setCookie("user", user.name, 3);
           $(".user-name")
             .text(user.name)
             .css("color", user.color);
