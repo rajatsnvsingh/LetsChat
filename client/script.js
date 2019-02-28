@@ -1,11 +1,15 @@
 $(function() {
+  // Application Setup
   let user = null;
-  var socket = io();
+  let socket = io();
   $(".alert").hide();
+
   // Logic to handle message submission and user commands
   $("form").submit(function(e) {
     e.preventDefault();
     let message = $("#m").val();
+
+    // Check for color change command.
     if (message.startsWith("/nickcolor")) {
       let value = getValueFromCommand(message);
       if (/(^[0-9A-F]{6}$)/i.test(value)) {
@@ -30,6 +34,7 @@ $(function() {
         return;
       }
     } else if (message.startsWith("/nick")) {
+      // execute if nick name command detected
       let value = getValueFromCommand(message);
       if (value.length > 8) {
         showAlert("Please choose a nick name that is less than 8 characters!");
@@ -48,6 +53,7 @@ $(function() {
         }
       });
     } else {
+      // No command found - transmit chat message.
       socket.emit("chat message", $("#m").val());
     }
     $("#m").val("");
@@ -59,13 +65,15 @@ $(function() {
     addMessage(msg);
   });
 
+  // Handle for when the room is at max capacity
   socket.on("full room", function() {
-    addMessage("The chat room is full, please try later.");
+    showAlert("The chat room is full, please try later.");
   });
 
   // This function is called when the user is initially setup by the server.
   socket.on("info", function(data, chatLog, time) {
     user = data;
+    // Setting Cookies and User Info
     setCookie("user", user.name, 3);
     setCookie("timeC", time, 3);
     $(".user-name")
@@ -91,6 +99,7 @@ $(function() {
     }
   });
 
+  // This function adds a message to the chat log.
   function addMessage(msg) {
     let messageContent =
       '<div class="message-content">' + msg.message + "</div>";
@@ -104,7 +113,6 @@ $(function() {
       "</div>";
     let messageTime =
       '<div class="message-time">' + generateTimeStamp(msg.time) + "</div>";
-    console.log(msg);
     $("#chat-log").append(
       $("<div>")
         .html(messageTime + messageUser + messageContent)
@@ -116,39 +124,42 @@ $(function() {
           return cl;
         })
     );
-    var d = $("#chat-log");
-    d.scrollTop(d.prop("scrollHeight"));
+    $("#chat-log").scrollTop($("#chat-log").prop("scrollHeight"));
+  }
+
+  // Used to show a 1.2 sec alert to the user.
+  function showAlert(message) {
+    $(".alert").text(message);
+    $(".alert")
+      .show()
+      .delay(1200)
+      .fadeOut();
+  }
+
+  // Creates a time stamp which is appended to the chat message.
+  function generateTimeStamp(input) {
+    let current = new Date(input);
+    let hours = current.getHours();
+    let min = current.getMinutes();
+    let sec = current.getSeconds();
+    let meridiem = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours == 0) hours = 12;
+    if (min < 10) min = "0" + min;
+    if (sec < 10) sec = "0" + sec;
+    return hours + ":" + min + ":" + sec + " " + meridiem;
+  }
+
+  // Retrieves the command the user enters.
+  function getValueFromCommand(command) {
+    return command.substr(command.indexOf(" ") + 1).trim();
+  }
+
+  // Function used to set cookie.
+  function setCookie(cname, cvalue, exdays) {
+    let date = new Date();
+    date.setTime(date.getTime() + exdays * 24 * 60 * 60 * 1000);
+    let expires = "expires=" + date.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
   }
 });
-
-function showAlert(message) {
-  $(".alert").text(message);
-  $(".alert")
-    .show()
-    .delay(1200)
-    .fadeOut();
-}
-
-function generateTimeStamp(input) {
-  let current = new Date(input);
-  let hours = current.getHours();
-  let min = current.getMinutes();
-  let sec = current.getSeconds();
-  let meridiem = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  if (hours == 0) hours = 12;
-  if (min < 10) min = "0" + min;
-  if (sec < 10) sec = "0" + sec;
-  return hours + ":" + min + ":" + sec + " " + meridiem;
-}
-
-function getValueFromCommand(command) {
-  return command.substr(command.indexOf(" ") + 1).trim();
-}
-
-function setCookie(cname, cvalue, exdays) {
-  var d = new Date();
-  d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
-  var expires = "expires=" + d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}

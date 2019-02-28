@@ -1,13 +1,12 @@
-var express = require("express");
-var app = express();
-var http = require("http").Server(app);
-app.use(express.static(__dirname + "/client"));
-var cookieManager = require("cookie");
-//app.use(cookieParser());
-var io = require("socket.io")(http);
-var chatLogLimit = 200;
-var serverStartTime = Date.now();
+let express = require("express");
+let app = express();
+let http = require("http").Server(app);
+let cookieManager = require("cookie");
+let io = require("socket.io")(http);
+let chatLogLimit = 200;
+let serverStartTime = Date.now();
 
+app.use(express.static(__dirname + "/client"));
 const userNames = ["parrot", "carrot", "harlot", "sharlot", "marriot", "riot"];
 const colorLibrary = [
   "#F1C40F",
