@@ -17,7 +17,7 @@ const colorLibrary = [
   "#DA05D4"
 ];
 let users = [];
-let activeUsers = [];
+//let activeUsers = [];
 let chatLog = [];
 
 app.get("/", function(req, res) {
@@ -30,9 +30,10 @@ io.on("connection", function(socket) {
   if (checkReturn) {
     socket.user = checkReturn;
     socket.user.tabs = socket.user.tabs + 1;
-    if (activeUsers.filter(e => e.name === socket.user.name).length < 1) {
-      activeUsers.push(socket.user);
-    }
+    socket.user.active = true;
+    // if (activeUsers.filter(e => e.name === socket.user.name).length < 1) {
+    //   activeUsers.push(socket.user);
+    // }
   } else {
     console.log("new user");
     if (users.length === userNames.length) {
@@ -43,12 +44,12 @@ io.on("connection", function(socket) {
     socket.user.name = randomName();
     socket.user.color = randomColor();
     socket.user.tabs = 1;
+    socket.user.active = true;
     users.push(socket.user);
-    activeUsers.push(socket.user);
   }
 
   socket.emit("info", socket.user, chatLog, Date.now());
-  io.emit("user list", activeUsers);
+  io.emit("user list", users.filter(e => e.active === true));
 
   // On Disconnect
   socket.on("disconnect", function() {
@@ -62,10 +63,11 @@ io.on("connection", function(socket) {
       }
     }
     if (openTabs < 1) {
-      activeUsers = activeUsers.filter(user => user !== socket.user);
+      users[users.indexOf(socket.user)].active = false;
+      //activeUsers = activeUsers.filter(user => user !== socket.user);
     }
 
-    io.emit("user list", activeUsers);
+    io.emit("user list", users.filter(e => e.active === true));
   });
 
   // Relaying Chat Message
@@ -88,7 +90,7 @@ io.on("connection", function(socket) {
       users[users.indexOf(socket.user)].name = name;
       socket.user.name = name;
       callback(true, "Name changed to " + name);
-      io.emit("user list", users);
+      io.emit("user list", users.filter(e => e.active === true));
     }
   });
 
@@ -100,7 +102,7 @@ io.on("connection", function(socket) {
       users[users.indexOf(socket.user)].color = color;
       socket.user.color = color;
       callback(true, "Color changed to " + color);
-      io.emit("user list", users);
+      io.emit("user list", users.filter(e => e.active === true));
     }
   });
 });
@@ -128,7 +130,7 @@ function checkReturning(cookie) {
   let c = cookieManager.parse(cookie);
   if (this.timeC < serverStartTime) return false;
   if (typeof c.user == "undefined") return false;
-  var result = users.filter(function(x) {
+  let result = users.filter(function(x) {
     return x.name == c.user;
   });
   if (result.length < 1) return false;
