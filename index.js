@@ -7,6 +7,7 @@ let io = require("socket.io")(http);
 // This limits the amount of messages to store.
 let chatLogLimit = 500;
 let serverStartTime = Date.now();
+let userCounter = 1;
 
 // Serve static client files
 app.use(express.static(__dirname + "/client"));
@@ -37,7 +38,7 @@ io.on("connection", function(socket) {
   var checkReturn = checkReturning(socket.handshake.headers.cookie);
   if (checkReturn) {
     // If returning, reactivate the user object.
-    console.log("returning User: " + checkReturn);
+    console.log("returning User: " + checkReturn.id);
     socket.user = checkReturn;
     // tabs are used to account for concurrent sessions from the same user.
     socket.user.tabs = socket.user.tabs + 1;
@@ -54,8 +55,10 @@ io.on("connection", function(socket) {
     socket.user.color = randomColor();
     socket.user.tabs = 1;
     socket.user.active = true;
+    socket.user.id = userCounter;
+    userCounter++;
     users.push(socket.user);
-    console.log("new user: " + socket.user.name);
+    console.log("new user: " + socket.user.name + ":" + socket.user.id);
   }
 
   socket.emit("info", socket.user, chatLog, Date.now());
@@ -80,6 +83,8 @@ io.on("connection", function(socket) {
 
   // Relaying Chat Message
   socket.on("chat message", function(msg) {
+    // Prevent JS injection.
+    msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     let message = {
       user: socket.user,
       message: msg,
@@ -138,18 +143,30 @@ function randomColor() {
 // This function checks for various conditions to determine whether to treat a user as new or returning.
 function checkReturning(cookie) {
   // If client sends no cookies
-  if (typeof cookie == "undefined") return false;
+  if (typeof cookie == "undefined") {
+    console.log("no cookies found!");
+    return false;
+  }
   let c = cookieManager.parse(cookie);
   // If the user cookie doesn't exist
-  if (typeof c.user == "undefined") return false;
+  if (typeof c.user == "undefined") {
+    console.log("no user found!");
+    return false;
+  }
   // If the cookies were created before the server started
   // This is important because of lack of server persistence.
-  if (c.timeC < serverStartTime) return false;
+  if (c.timeC < serverStartTime) {
+    console.log("Cookie older than server start");
+    return false;
+  }
   // Check if there is a user object in the server for the mentioned cookie.
   // Implementation for denying customer modified cookie usernames.
   let result = users.filter(function(x) {
-    return x.name == c.user;
+    return x.id == c.user;
   });
-  if (result.length < 1) return false;
+  if (result.length < 1) {
+    console.log("User not found in the server");
+    return false;
+  }
   return result[0];
 }

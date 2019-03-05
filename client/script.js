@@ -44,7 +44,7 @@ $(function() {
         if (success) {
           user.name = value;
           // Must update cookies for identification.
-          setCookie("user", user.name, 3);
+          setCookie("user", user.id, 3);
           $(".user-name")
             .text(user.name)
             .css("color", user.color);
@@ -75,7 +75,7 @@ $(function() {
   socket.on("info", function(data, chatLog, time) {
     user = data;
     // Setting Cookies and User Info
-    setCookie("user", user.name, 3);
+    setCookie("user", user.id, 3);
     setCookie("timeC", time, 3);
     $(".user-name")
       .text(user.name)
@@ -119,7 +119,7 @@ $(function() {
         .html(messageTime + messageUser + messageContent)
         .addClass(function() {
           let cl = "message";
-          if (msg.user.name == user.name) {
+          if (msg.user.id == user.id) {
             cl = cl + " own-message";
           }
           return cl;
